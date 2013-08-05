@@ -25,6 +25,8 @@ bool collisiondetected;
 
 Quadtree tree;
 
+Object player;
+
 string toString(int nr) {
     stringstream ss;
     ss << nr;
@@ -142,19 +144,18 @@ void update(RenderWindow &window) {
         semiscacamera = true;
     }
 
-    /*if(objects.size() > 0)
-        objects[0].speed = vec2(0, 0);
+    player.speed = vec2(0, 0);
 
-    if(objects.size() > 0){
+    if(tree.objects.size() > 0){
         if(Keyboard::isKeyPressed(Keyboard::Up))
-            objects[0].speed.y = -2;
+            player.speed.y = -2;
         if(Keyboard::isKeyPressed(Keyboard::Down))
-            objects[0].speed.y = 2;
+            player.speed.y = 2;
         if(Keyboard::isKeyPressed(Keyboard::Right))
-            objects[0].speed.x = 2;
+            player.speed.x = 2;
         if(Keyboard::isKeyPressed(Keyboard::Left))
-            objects[0].speed.x = -2;
-    }*/
+            player.speed.x = -2;
+    }
 
     if(Keyboard::isKeyPressed(Keyboard::R))
         reset();
@@ -167,8 +168,11 @@ void update(RenderWindow &window) {
     mx += camera.pos.x;
     my += camera.pos.y;
 
-    /*for(int i = 0;i < (signed)objects.size();i++)
-        objects[i].move();*/
+    tree.moveobjects();
+    player.move();
+
+    //tree.removeobject(player);
+    //tree.addobject(player);
 
     handlecollisions();
 }
@@ -183,10 +187,11 @@ void draw() {
 
     glTranslatef(-camera.pos.x, -camera.pos.y, 0);
 
-    for(int i = 0;i < (signed)tree.objects.size();i++)
-        tree.objects[i].draw();
+    tree.draw();
 
     drawquad(vec2(mx, my), vec2(5, 5), vec4(1, 1, 1, 1), true);
+
+    player.draw();
 }
 
 int main() {
@@ -218,6 +223,10 @@ int main() {
     camera = Camera(vec2(0, 0), 1);
 
     tree = Quadtree(vec2(0, 0), vec2(SW, SH));
+
+    player = Object(vec2(50, 50), 44);
+    player.color = vec4(1,1,1,1);
+    tree.addobject(player);
 
     while(window.isOpen()) {
         update(window);

@@ -1,139 +1,130 @@
 #include "Quadtree.h"
-#include "object.h"
+#include "Object.h"
 #include <GL/gl.h>
 
+const int maxcap = 1;
+const int maxlev = 5;
+
 Quadtree::Quadtree(){
+    maxcapacity = maxcap;
+    maxlevels = maxlev;
+    level = 0;
+    nodes = 0;
 }
 
-Quadtree::Quadtree(vec2 _pos, vec2 _dimensions, int _mincapacity, int _maxcapacity, int _maxdepth){
+Quadtree::Quadtree(vec2 _pos, vec2 _dimensions){
     pos = _pos;
     dimensions = _dimensions;
-    isleaf = true;
-    maxcapacity = _maxcapacity;
-    mincapacity = _mincapacity;
-    maxdepth = _maxdepth;
-    depth = 0;
-}
-
-Quadtree::~Quadtree(){
-
-}
-
-int Quadtree::getleft(){
-    return pos.x;
-}
-
-int Quadtree::getright(){
-    return pos.x + dimensions.x;
-}
-
-int Quadtree::getup(){
-    return pos.y;
-}
-
-int Quadtree::getdown(){
-    return pos.y + dimensions.y;
+    maxcapacity = maxcap;
+    maxlevels = maxlev;
+    level = 0;
+    nodes = 0;
 }
 
 void Quadtree::clear(){
     objects.clear();
 
-    if(!isleaf){
-        int i;
-        for(i = 0;i < 4;i++){
-            nodes[i]->clear();
-            delete nodes[i];
+    if(nodes != 0)
+        for(int i = 0;i < 4;i++){
+            nodes[i].clear();
         }
-    }
 
-    isleaf = true;
+    nodes = 0;
 }
 
-bool Quadtree::contains(Object obj){
-    return obj.getleft() > getleft() and obj.getup() > getup() and
-           obj.getright() < getright() and
-           obj.getdown() < getdown();
+void Quadtree::split(){
+    nodes = new Quadtree[4];
+    vec2 half = dimensions / 2;
+    nodes[0] = Quadtree(vec2(pos.x, pos.y), half);//NW
+    nodes[1] = Quadtree(vec2(pos.x + half.x, pos.y), half);//NE
+    nodes[2] = Quadtree(vec2(pos.x + half.x, pos.y + half.y), half);//SE
+    nodes[3] = Quadtree(vec2(pos.x,pos.y + half.y), half);//SW
+    nodes[0].level = level + 1;
+    nodes[1].level = level + 1;
+    nodes[2].level = level + 1;
+    nodes[3].level = level + 1;
 }
 
-bool Quadtree::contains(double x, double y){
-    return x >= getleft() and x <= getright() and
-           y >= getup() and y <= getdown();
-}
+int Quadtree::getindex(Object obj){
+    int index = -1;
 
-void Quadtree::createleaves(){
-    isleaf = false;
-    nodes[0] = new Quadtree(pos, dimensions / 2, mincapacity, maxcapacity, depth + 1);
-    nodes[1] = new Quadtree(vec2((getleft() + getright()) / 2, getup()), dimensions / 2, mincapacity, maxcapacity, depth + 1);
-    nodes[2] = new Quadtree(vec2(getleft(), (getup() + getdown()) / 2), dimensions / 2, mincapacity, maxcapacity, depth + 1);
-    nodes[3] = new Quadtree(vec2((getleft() + getright()) / 2, (getup() + getdown()) / 2), dimensions / 2, mincapacity, maxcapacity, depth + 1);
-}
+    if(obj.pos.x < pos.x or obj.pos.y < pos.y or obj.pos.x > pos.x + dimensions.x or obj.pos.y > pos.y + dimensions.y)
+        return index;
 
-void Quadtree::moveobjectstoleaves(){
-    int i, j;
-    for(i = 0;i < 4;i++){
-        for(j = 0;j < (signed)objects.size();j++){
-            if(nodes[i]->contains(objects[j])){
-                nodes[i]->addobject(objects[j]);
-                objects.erase(objects.begin() + j);
-                j--;
-            }
-        }
-    }
+    bool left = obj.pos.x < pos.x + dimensions.x / 2;
+    bool up = obj.pos.y < pos.y + dimensions.y / 2;
+
+    if(left and up)
+        return 0;
+    if(!left and up)
+        return 1;
+    if(!left and !up)
+        return 2;
+    if(left and !up)
+        return 3;
+
+    return -1;
 }
 
 void Quadtree::addobject(Object obj){
-    if(depth >= maxdepth)
-        return;
-
-    if(isleaf){
-        objects.push_back(obj);
-
-        if((signed)objects.size() == maxcapacity){
-            createleaves();
-            moveobjectstoleaves();
-            isleaf = false;
+    if(nodes != 0){
+        int index = getindex(obj);
+        if(index != -1){
+            nodes[index].addobject(obj);
+            return;
         }
-
-        return;
     }
-    else{
-        int i;
-        for(i = 0;i < 4;i++){
-            if(nodes[i]->contains(obj)){
-                nodes[i]->addobject(obj);
-                return;
-            }
-        }
 
-        objects.push_back(obj);
+    objects.push_back(obj);
+
+    if((signed)objects.size() > maxcapacity and level < maxlevels){
+        if(nodes == 0)
+            split();
+
+        int i = 0;
+        while(i < (signed)objects.size()){
+            int id = getindex(objects[i]);
+            if(id != -1){
+                nodes[id].addobject(objects[i]);
+                objects.erase(objects.begin() + i);
+            }
+            else
+                i++;
+        }
     }
 }
 
-void Quadtree::removeobject(int index){
-    if(!isleaf){
-        if((signed)objects.size() < mincapacity){
-            clear();
-            return;
-        }
+bool Quadtree::contains(Object obj){
+    return obj.getleft() > pos.x and obj.getup() > pos.y and
+           obj.getright() < pos.x + dimensions.x and
+           obj.getdown() < pos.y + dimensions.y;
+}
 
-        int i;
-        for(i = 0;i < 4;i++)
-            if(nodes[i]->contains(objects[i]))
-                nodes[i]->removeobject(i);
-    }else{
-        objects.erase(objects.begin() + index);
-        return;
+void Quadtree::moveobjects(){
+    for(int i = 0;i < (signed)objects.size();i++)
+        objects[i].move();
+}
+
+void Quadtree::removeobject(Object obj){
+    if(nodes == 0){
+        for(int i = 0;i < (signed)objects.size();i++)
+            if(objects[i].pos.x == obj.pos.x and objects[i].pos.y == obj.pos.y){//temporar
+                objects.erase(objects.begin() + i);
+                return;
+            }
     }
+
+    if(objects.size() == 0)
+        clear();
 }
 
 void Quadtree::draw(){
-    drawquad(pos, dimensions / 2, vec4(1, 1, 1, .5), 1);
-    drawquad(vec2((getleft() + getright()) / 2, getup()), dimensions / 2, vec4(1, 1, 1, .5), 1);
-    drawquad(vec2(getleft(), (getup() + getdown()) / 2), dimensions / 2, vec4(1, 1, 1, .5), 1);
-    drawquad(vec2((getleft() + getright()) / 2, (getup() + getdown()) / 2), dimensions / 2, vec4(1, 1, 1, .5), 1);
+    drawquad(vec2(pos.x, pos.y), dimensions, vec4(1,1,1,1), 0);
 
-    int i = 0;
-    for(i = 0;i < 4;i++)
-        if(!isleaf)
-            nodes[i]->draw();
+    for(int i = 0;i < (signed)objects.size();i++)
+        objects[i].draw();
+
+    if(nodes != 0)
+        for(int i = 0;i < 4;i++)
+            nodes[i].draw();
 }

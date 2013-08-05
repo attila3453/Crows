@@ -144,3 +144,50 @@
 1372941146 c:\users\attila\dropbox\crows\camera.h
 	"Vector.h"
 
+1372941199 source:c:\users\attila\documents\github\crows\camera.cpp
+	"Camera.h"
+	"Vector.h"
+
+1372941146 c:\users\attila\documents\github\crows\camera.h
+	"Vector.h"
+
+1375264031 c:\users\attila\documents\github\crows\vector.h
+
+1375713399 source:c:\users\attila\documents\github\crows\main.cpp
+	<SFML/OpenGL.hpp>
+	<SFML/Graphics.hpp>
+	<iostream>
+	<vector>
+	<cmath>
+	<time.h>
+	<math.h>
+	<stdlib.h>
+	<sstream>
+	"Vector.h"
+	"Quadtree.h"
+	"Object.h"
+	"Camera.h"
+
+1375712998 c:\users\attila\documents\github\crows\quadtree.h
+	"Object.h"
+	<vector>
+
+1375349359 c:\users\attila\documents\github\crows\object.h
+	"Vector.h"
+	<vector>
+
+1375352806 source:c:\users\attila\documents\github\crows\object.cpp
+	"Object.h"
+	<GL/gl.h>
+	<cmath>
+	<vector>
+
+1375713453 source:c:\users\attila\documents\github\crows\quadtree.cpp
+	"Quadtree.h"
+	"Object.h"
+	<GL/gl.h>
+
+1375264053 source:c:\users\attila\documents\github\crows\vector.cpp
+	<math.h>
+	"Vector.h"
+
