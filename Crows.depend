@@ -1,0 +1,146 @@
+# depslib dependency file v1.0
+1375702481 source:c:\users\attila\dropbox\crows\main.cpp
+	<SFML/OpenGL.hpp>
+	<SFML/Graphics.hpp>
+	<iostream>
+	<vector>
+	<cmath>
+	<time.h>
+	<math.h>
+	<stdlib.h>
+	<sstream>
+	"Vector.h"
+	"Quadtree.h"
+	"Object.h"
+	"Camera.h"
+
+1369678189 
+
+1369678331 source:/home/attila/Dropbox/Crows/main.cpp
+	<iostream>
+	<GL/glfw.h>
+	<glm/glm.hpp>
+	<vector>
+	<cmath>
+	<time.h>
+
+1375352806 source:c:\users\attila\dropbox\crows\object.cpp
+	"Object.h"
+	<GL/gl.h>
+	<cmath>
+	<vector>
+
+1375349359 c:\users\attila\dropbox\crows\object.h
+	"Vector.h"
+	<vector>
+
+1374667371 source:c:\users\attila\dropbox\crows\quadtree.cpp
+	"Quadtree.h"
+	"object.h"
+	<GL/gl.h>
+
+1375702498 c:\users\attila\dropbox\crows\quadtree.h
+	"Object.h"
+	<vector>
+
+1375264031 c:\users\attila\dropbox\crows\vector.h
+
+1375264053 source:c:\users\attila\dropbox\crows\vector.cpp
+	<math.h>
+	"Vector.h"
+
+1372938716 source:c:\users\attila\google drive\crows\object.cpp
+	"Object.h"
+	<GL/gl.h>
+
+1372938716 c:\users\attila\google drive\crows\object.h
+	"Vector.h"
+
+1369858952 c:\users\attila\google drive\crows\vector.h
+
+1372940068 source:c:\users\attila\google drive\crows\quadtree.cpp
+	"Quadtree.h"
+	"object.h"
+	<GL/gl.h>
+
+1372940056 c:\users\attila\google drive\crows\quadtree.h
+	"Object.h"
+	<vector>
+
+1369858119 source:c:\users\attila\google drive\crows\vector.cpp
+	<math.h>
+	"Vector.h"
+
+1372939621 source:c:\users\attila\google drive\crows\camera.cpp
+	"Camera.h"
+	"Vector.h"
+
+1372939842 c:\users\attila\google drive\crows\camera.h
+	"Vector.h"
+
+1372940111 source:c:\users\attila\google drive\crows\main.cpp
+	<SFML/OpenGL.hpp>
+	<SFML/Graphics.hpp>
+	<iostream>
+	<vector>
+	<cmath>
+	<time.h>
+	<math.h>
+	<stdlib.h>
+	<sstream>
+	"Vector.h"
+	"Quadtree.h"
+	"Object.h"
+	"Camera.h"
+
+1372941199 source:c:\users\attila\desktop\crows\camera.cpp
+	"Camera.h"
+	"Vector.h"
+
+1372941146 c:\users\attila\desktop\crows\camera.h
+	"Vector.h"
+
+1369858952 c:\users\attila\desktop\crows\vector.h
+
+1372940546 source:c:\users\attila\desktop\crows\object.cpp
+	"Object.h"
+	<GL/gl.h>
+
+1372938716 c:\users\attila\desktop\crows\object.h
+	"Vector.h"
+
+1372940068 source:c:\users\attila\desktop\crows\quadtree.cpp
+	"Quadtree.h"
+	"object.h"
+	<GL/gl.h>
+
+1372940056 c:\users\attila\desktop\crows\quadtree.h
+	"Object.h"
+	<vector>
+
+1369858119 source:c:\users\attila\desktop\crows\vector.cpp
+	<math.h>
+	"Vector.h"
+
+1372941362 source:c:\users\attila\desktop\crows\main.cpp
+	<SFML/OpenGL.hpp>
+	<SFML/Graphics.hpp>
+	<iostream>
+	<vector>
+	<cmath>
+	<time.h>
+	<math.h>
+	<stdlib.h>
+	<sstream>
+	"Vector.h"
+	"Quadtree.h"
+	"Object.h"
+	"Camera.h"
+
+1372941199 source:c:\users\attila\dropbox\crows\camera.cpp
+	"Camera.h"
+	"Vector.h"
+
+1372941146 c:\users\attila\dropbox\crows\camera.h
+	"Vector.h"
+
