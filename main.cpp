@@ -1,5 +1,5 @@
-#include <SFML/OpenGL.hpp>
-#include <SFML/Graphics.hpp>
+#include <GL/glew.h>
+#include <SFML/Window.hpp>
 #include <iostream>
 #include <vector>
 #include <cmath>
@@ -7,25 +7,83 @@
 #include <math.h>
 #include <stdlib.h>
 #include <sstream>
-#include "Vector.h"
-#include "Quadtree.h"
-#include "Object.h"
-#include "Camera.h"
+#include <fstream>
 
 using namespace std;
 using namespace sf;
 
-int SW = 800, SH = 600;
+int SW = 400, SH = 400;
 int mx, my;
 
-Camera camera;
+GLuint loadShaders(const char *vertexpath, const char *fragmentpath){
+    GLuint vertexid = glCreateShader(GL_VERTEX_SHADER);
+    GLuint fragmentid = glCreateShader(GL_FRAGMENT_SHADER);
 
-bool semiscacamera;
-bool collisiondetected;
+    string vertexcode, fragmentcode, line;
 
-Quadtree tree;
+    ifstream stream;
+    stream.open(vertexpath);
+    for(;getline(stream, line);vertexcode += "\n" + line);
+    stream.close();
 
-Object player;
+    stream.open(fragmentpath);
+    for(;getline(stream, line);fragmentcode += "\n" + line);
+    stream.close();
+
+    GLint ret = GL_FALSE;
+    int loglen = 0;
+    GLchar *log;
+
+    printf("Compiling shader:%s\n", vertexpath);
+    const char *vertexcodeptr = vertexcode.c_str();
+    glShaderSource(vertexid, 1, &vertexcodeptr, NULL);
+    glCompileShader(vertexid);
+
+    glGetShaderiv(vertexid, GL_COMPILE_STATUS, &ret);
+    glGetShaderiv(vertexid, GL_INFO_LOG_LENGTH, &loglen);
+
+    if(loglen){
+        glGetShaderInfoLog(vertexid, loglen, NULL, log);
+        printf("%s\n", log);
+    }
+
+    printf("Compiling shader:%s\n", fragmentpath);
+    const char *fragmentcodeptr = fragmentcode.c_str();
+    glShaderSource(fragmentid, 1, &fragmentcodeptr, NULL);
+    glCompileShader(fragmentid);
+
+    loglen = 0;
+
+    glGetShaderiv(fragmentid, GL_COMPILE_STATUS, &ret);
+    glGetShaderiv(fragmentid, GL_INFO_LOG_LENGTH, &loglen);
+
+    if(loglen){
+        glGetShaderInfoLog(fragmentid, loglen, NULL, log);
+        printf("%s\n", log);
+    }
+
+    printf("Linking GL program\n");
+
+    GLuint programid = glCreateProgram();
+    glAttachShader(programid, vertexid);
+    glAttachShader(programid, fragmentid);
+    glLinkProgram(programid);
+
+    loglen = 0;
+
+    glGetProgramiv(programid, GL_LINK_STATUS, &ret);
+    glGetProgramiv(programid, GL_INFO_LOG_LENGTH, &loglen);
+
+    if(loglen){
+        glGetProgramInfoLog(programid, loglen, 0, log);
+        printf("%s\n", log);
+    }
+
+    glDeleteShader(vertexid);
+    glDeleteShader(fragmentid);
+
+    return programid;
+}
 
 string toString(int nr) {
     stringstream ss;
@@ -51,55 +109,7 @@ double random(double a, double b) {
     return (b - a) * nextdouble() + a;
 }
 
-void reset() {
-    camera = Camera(vec2(0, 0), 1);
-}
-
-void handlecollisions(){
-    //int i, j;
-
-    collisiondetected = false;
-
-    /*for(i = 0;i < (signed)objects.size();i++){
-        if(objects[i].radius != -1){
-            if(objects[i].pos.x < objects[i].radius){//stanga
-                objects[i].pos.x = objects[i].radius;
-                objects[i].speed.x *= -1;
-            }
-
-            if(objects[i].pos.y < objects[i].radius){//sus
-                objects[i].pos.y = objects[i].radius;
-                objects[i].speed.y *= -1;
-            }
-
-            if(objects[i].pos.x > SW - objects[i].radius){//dreapta
-                objects[i].pos.x = SW - objects[i].radius;
-                objects[i].speed.x *= -1;
-            }
-
-            if(objects[i].pos.y > SH - objects[i].radius){//jos
-                objects[i].pos.y = SH - objects[i].radius;
-                objects[i].speed.y *= -1;
-            }
-        }
-    }*/
-
-    /*for(i = 0;i < (signed)objects.size();i++)
-        for(j = 0;j < (signed)objects.size();j++)
-            if(i != j){
-                float radsum = objects[i].radius + objects[j].radius;
-                float raddif = objects[i].radius - objects[j].radius;
-
-                if(objects[i].radius != -1 and objects[j].radius != -1){//circle-circle
-                    if(objects[i].pos.dist2(objects[j].pos) <= radsum * radsum)
-                        collisiondetected = true;
-                }
-            }*/
-}
-
-void update(RenderWindow &window) {
-    semiscacamera = false;
-
+void update(Window &window) {
     Event event;
     while (window.pollEvent(event)) {
         if (event.type == Event::Closed or Keyboard::isKeyPressed(Keyboard::Escape))
@@ -110,146 +120,58 @@ void update(RenderWindow &window) {
             SH = event.size.height;
             glViewport( 0, 0, SW, SH );
         }
-
-        if(event.type == Event::MouseWheelMoved)
-            camera.Scale(event.mouseWheel.delta);
-
-
-        if(event.type == Event::MouseButtonReleased and
-           event.mouseButton.button == Mouse::Left and
-           mx > 0 and mx < SW and my > 0 and my < SH){
-            Object obj = Object(vec2(mx, my), 30);
-            obj.color = vec4(nextdouble(), nextdouble(), nextdouble(), nextdouble());
-            tree.addobject(obj);
-        }
     }
-
-    if(Keyboard::isKeyPressed(Keyboard::W)){
-        camera.Move(vec2(0, -1));
-        semiscacamera = true;
-    }
-
-    if(Keyboard::isKeyPressed(Keyboard::A)){
-        camera.Move(vec2(-1, 0));
-        semiscacamera = true;
-    }
-
-    if(Keyboard::isKeyPressed(Keyboard::S)){
-        camera.Move(vec2(0, 1));
-        semiscacamera = true;
-    }
-
-    if(Keyboard::isKeyPressed(Keyboard::D)){
-        camera.Move(vec2(1, 0));
-        semiscacamera = true;
-    }
-
-    player.speed = vec2(0, 0);
-
-    if(tree.objects.size() > 0){
-        if(Keyboard::isKeyPressed(Keyboard::Up))
-            player.speed.y = -2;
-        if(Keyboard::isKeyPressed(Keyboard::Down))
-            player.speed.y = 2;
-        if(Keyboard::isKeyPressed(Keyboard::Right))
-            player.speed.x = 2;
-        if(Keyboard::isKeyPressed(Keyboard::Left))
-            player.speed.x = -2;
-    }
-
-    if(Keyboard::isKeyPressed(Keyboard::R))
-        reset();
 
     Vector2i mpos = Mouse::getPosition(window);
     mx = mpos.x;
     my = mpos.y;
-    mx /= camera.scale;
-    my /= camera.scale;
-    mx += camera.pos.x;
-    my += camera.pos.y;
-
-    tree.moveobjects();
-    player.move();
-
-    //tree.removeobject(player);
-    //tree.addobject(player);
-
-    handlecollisions();
-}
-
-void draw() {
-    glClear(GL_COLOR_BUFFER_BIT);
-    glMatrixMode( GL_MODELVIEW );
-    glLoadIdentity();
-    gluOrtho2D(0, SW, SH, 0);
-
-    glScalef(camera.scale, camera.scale, 0);
-
-    glTranslatef(-camera.pos.x, -camera.pos.y, 0);
-
-    tree.draw();
-
-    drawquad(vec2(mx, my), vec2(5, 5), vec4(1, 1, 1, 1), true);
-
-    player.draw();
 }
 
 int main() {
-    RenderWindow window(VideoMode(SW, SH), "Crows", Style::Default, ContextSettings(32));
+    Window window(VideoMode(SW, SH), "Crows", Style::Default, ContextSettings(32));
     window.setVerticalSyncEnabled(1);
-    window.setMouseCursorVisible(false);
-    window.setKeyRepeatEnabled(false);
+    window.setActive(1);
 
-    glEnable(GL_COLOR_MATERIAL);
-
-    window.setActive(true);
-
-    glPointSize(5);
-    glLineWidth(1);
     glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
 
-    string hudtext;
-
-    Text hud;
-    Font fontubuntu;
-    fontubuntu.loadFromFile("data/Ubuntu-R.ttf");
-    hud.setFont(fontubuntu);
-    hud.setColor(Color::White);
-    hud.setCharacterSize(14);
-
     srand(time(0));
-    cout<<"Initial time:"<<time(0)<<'\n';
 
-    camera = Camera(vec2(0, 0), 1);
+    glewExperimental = 1;
+    glewInit();
 
-    tree = Quadtree(vec2(0, 0), vec2(SW, SH));
+    GLuint triangleid;
+    glGenVertexArrays(1, &triangleid);
+    glBindVertexArray(triangleid);
 
-    player = Object(vec2(50, 50), 44);
-    player.color = vec4(1,1,1,1);
-    tree.addobject(player);
+    GLfloat triangledata[] = {
+            -1, -1, 0,
+            1,  -1, 0,
+            0,   1, 0};
+
+    GLuint vertexbuffer;
+
+    GLuint programid = loadShaders("shader.vertex", "shader.fragment");
+
+    glClearColor(0, 0, 1, 1);
+
+    glGenBuffers(1, &vertexbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(triangledata), triangledata, GL_STATIC_DRAW);
 
     while(window.isOpen()) {
         update(window);
-        draw();
 
-        window.pushGLStates();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        hudtext = "Hello world!\n";
-        hudtext += "Camera pos: " + toString(camera.pos.x) + " " + toString(camera.pos.y) + "\n";
-        hudtext += "Camera scale: " + toString(camera.scale) + "\n";
-        hudtext += "Mouse pos: " + toString(mx) + " " + toString(my) + "\n";
-        hudtext += "Obiecte:" + toString((int)tree.objects.size()) + "\n";
+        glUseProgram(programid);
 
-        if(semiscacamera)
-            hudtext += "Se misca camera...\n";
+        glEnableVertexAttribArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
-        if(collisiondetected)
-            hudtext += "Collision!\n";
+        glDrawArrays(GL_TRIANGLES, 0, 3);
 
-        hud.setString(hudtext);
-        window.draw(hud);
-
-        window.popGLStates();
+        glDisableVertexAttribArray(0);
 
         window.display();
     }

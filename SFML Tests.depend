@@ -1,0 +1,13 @@
+# depslib dependency file v1.0
+1377160902 source:c:\users\attila\documents\github\sfml-tests\main.cpp
+	<GL/glew.h>
+	<SFML/Window.hpp>
+	<iostream>
+	<vector>
+	<cmath>
+	<time.h>
+	<math.h>
+	<stdlib.h>
+	<sstream>
+	<fstream>
+

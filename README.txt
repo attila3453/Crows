@@ -1,1 +1,0 @@
-Sandbox project for 2D stuff, using SFML 2 library.
